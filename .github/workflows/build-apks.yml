@@ -1,5 +1,11 @@
 name: Build APKs
 
+# Every build that is not a pull request publishes a numbered, non-prerelease
+# release, tagged v<versionName> from app/build.gradle.kts. Push to main, push a
+# v* tag, or hit Run workflow — all three end up in the same place. Bump
+# versionName to start a new release; re-running the same version replaces its
+# APKs instead of piling up duplicates.
+
 on:
   push:
     branches: [main, master]
@@ -10,9 +16,14 @@ on:
 permissions:
   contents: write
 
+# Two pushes to the same branch must not race each other when moving a tag.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   apks:
-    name: Release APKs
+    name: Build and publish
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,42 +69,81 @@ jobs:
           path: dist/*.apk
           if-no-files-found: error
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*.apk
-          generate_release_notes: true
-          fail_on_unmatched_files: true
+      - name: Read version name
+        id: version
+        run: |
+          # The gradle file is the single source of truth for the version, so
+          # nobody has to retype it in a dialog.
+          VERSION=$(sed -n 's/.*versionName *= *"\([^"]*\)".*/\1/p' app/build.gradle.kts | head -1)
+          if [ -z "$VERSION" ]; then
+            echo "::error::could not read versionName from app/build.gradle.kts"
+            exit 1
+          fi
+          echo "name=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building $VERSION"
 
-      # A branch only ever gets this rolling release, so the APKs under Releases
-      # follow main instead of waiting for the next version tag. Version tags
-      # above stay the permanent, numbered snapshots.
-      - name: Refresh the Latest build release
-        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest
-          name: Latest build
-          prerelease: true
-          overwrite_files: true
-          fail_on_unmatched_files: true
-          body: |
-            Built from `${{ github.sha }}` on `${{ github.ref_name }}`.
-            These APKs are newer than the newest version tag; numbered
-            releases are the version tags.
-          files: dist/*.apk
-
-      # overwrite_files only replaces assets with the same name, so an older
-      # version's APKs would linger next to the new ones. Drop whatever is not
-      # part of this build.
-      - name: Drop stale APKs from the Latest build release
-        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
+      - name: Publish release
+        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view latest --json assets --jq '.assets[].name' 2>/dev/null |
-          while read -r name; do
-            [ -n "$name" ] || continue
-            [ -f "dist/$name" ] || gh release delete-asset latest "$name" --yes
-          done
+          set -euo pipefail
+
+          VERSION="${{ steps.version.outputs.name }}"
+          TAG="v$VERSION"
+          # A pushed tag wins over the gradle version, so a hand-made tag such
+          # as v1.2.0-rc1 keeps its own name.
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG="$GITHUB_REF_NAME"
+          fi
+          echo "Publishing $TAG from $GITHUB_SHA"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # The tag has to point at the commit that was just built. A version
+          # bump creates it; re-running the same version moves it so the release
+          # never advertises source code that is not what the APK contains.
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            git tag -f "$TAG" "$GITHUB_SHA"
+            git push --force origin "refs/tags/$TAG" \
+              || echo "::warning::could not move $TAG (tag protection?), publishing against the old tag"
+          else
+            git tag "$TAG" "$GITHUB_SHA"
+            git push origin "refs/tags/$TAG" \
+              || echo "::warning::could not create $TAG, gh will create it"
+          fi
+
+          # A suffix such as -beta keeps a build out of the "Latest" slot, the
+          # same way a human would mark it.
+          if [[ "$VERSION" == *-* ]]; then
+            KIND=(--prerelease)
+          else
+            KIND=(--latest)
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG exists, replacing its APKs"
+            gh release upload "$TAG" dist/*.apk --clobber
+            if [[ "$VERSION" == *-* ]]; then
+              gh release edit "$TAG" --title "$TAG" --prerelease --latest=false
+            else
+              gh release edit "$TAG" --title "$TAG" --prerelease=false --latest
+            fi
+          else
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --generate-notes \
+              --verify-tag \
+              "${KIND[@]}" \
+              dist/*.apk
+          fi
+
+      # Earlier versions of this workflow kept a rolling pre-release under the
+      # tag "latest". It is no longer produced and would otherwise sit at the
+      # top of the Releases page pretending to be the newest build.
+      - name: Remove the legacy rolling pre-release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release delete latest --yes --cleanup-tag 2>/dev/null || true
