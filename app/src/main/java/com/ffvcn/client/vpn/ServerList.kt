@@ -21,8 +21,8 @@ data class Server(
     // The country name is translated for the UI; the city stays as the API
     // spells it, since a translated city would lose its meaning in a label.
     val label: String
-        get() = if (city.isBlank()) CountryNames.display(countryName)
-        else CountryNames.display(countryName) + " / " + city
+        get() = if (city.isBlank()) CountryNames.display(country, countryName)
+        else CountryNames.display(country, countryName) + " / " + city
 }
 
 /**

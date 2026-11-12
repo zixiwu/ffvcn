@@ -75,9 +75,9 @@ pull request и тег. Push в `main` обновляет релиз **Latest bu
 
 | Файл | ABI |
 | --- | --- |
-| `dist/FirefoxVCN-1.1.1-armeabi-v7a.apk` | 32-битный ARM |
-| `dist/FirefoxVCN-1.1.1-arm64-v8a.apk` | 64-битный ARM |
-| `dist/FirefoxVCN-1.1.1-universal.apk` | оба |
+| `dist/FirefoxVCN-1.1.2-armeabi-v7a.apk` | 32-битный ARM |
+| `dist/FirefoxVCN-1.1.2-arm64-v8a.apk` | 64-битный ARM |
+| `dist/FirefoxVCN-1.1.2-universal.apk` | оба |
 
 Все релизные сборки подписаны постоянным ключом `signing/firefoxv-cn.keystore`,
 поэтому каждая сборка — локальная или в CI — ставится поверх предыдущей. APK

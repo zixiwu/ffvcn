@@ -11,14 +11,14 @@ android {
         applicationId = "com.ffvcn.client"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.1.1"
+        versionCode = 4
+        versionName = "1.1.2"
     }
 
     // A fixed key kept in the repo. Every build, local or CI, signs with the
     // same certificate, so a new APK updates over an installed one instead of
     // failing with INSTALL_FAILED_UPDATE_INCOMPATIBLE.
-    // Replaced with a dedicated FirefoxV CN key; anyone who builds from this
+    // Replaced with a dedicated FFVCN key; anyone who builds from this
     // repository gets the same certificate, so keep the repo private.
     signingConfigs {
         create("release") {

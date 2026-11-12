@@ -73,9 +73,9 @@ push به `main` ریلیز **Latest build** را به‌روز می‌کند و
 
 | فایل | معماری |
 | --- | --- |
-| `dist/FirefoxVCN-1.1.1-armeabi-v7a.apk` | ARM ۳۲بیتی |
-| `dist/FirefoxVCN-1.1.1-arm64-v8a.apk` | ARM ۶۴بیتی |
-| `dist/FirefoxVCN-1.1.1-universal.apk` | هر دو |
+| `dist/FirefoxVCN-1.1.2-armeabi-v7a.apk` | ARM ۳۲بیتی |
+| `dist/FirefoxVCN-1.1.2-arm64-v8a.apk` | ARM ۶۴بیتی |
+| `dist/FirefoxVCN-1.1.2-universal.apk` | هر دو |
 
 همهٔ ساخت‌های ریلیز با کلید ثابت `signing/firefoxv-cn.keystore` امضا می‌شوند، پس
 هر بیلد — محلی یا CI — روی نسخهٔ قبلی نصب می‌شود. APKهای ریلیزهای تا 1.1.0 با

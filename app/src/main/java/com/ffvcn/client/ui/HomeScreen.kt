@@ -1,5 +1,7 @@
 package com.ffvcn.client.ui
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -41,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -55,6 +58,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -65,6 +69,8 @@ import com.ffvcn.client.BuildConfig
 import com.ffvcn.client.R
 import com.ffvcn.client.vpn.Mode
 import com.ffvcn.client.vpn.Phase
+import com.ffvcn.client.vpn.Release
+import com.ffvcn.client.vpn.Updates
 import com.ffvcn.client.vpn.VpnUi
 
 @Composable
@@ -80,6 +86,7 @@ fun HomeScreen(
         Phase.Error -> MaterialTheme.colorScheme.error
     }
     val glow by animateColorAsState(accent, label = "glow")
+    val release by Updates.release.collectAsState()
 
     Box(
         modifier = Modifier
@@ -121,6 +128,12 @@ fun HomeScreen(
             Spacer(Modifier.height(14.dp))
             if (!ui.signedIn) {
                 AccountChip(onClick = onOpenSettings)
+            }
+            // Only there when a newer release really exists; the check itself
+            // runs in the background and stays silent when it fails.
+            release?.let {
+                Spacer(Modifier.height(10.dp))
+                UpdatePill(it)
             }
             Text(
                 text = stringResource(R.string.about_version, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
@@ -403,6 +416,32 @@ private fun AccountChip(onClick: () -> Unit) {
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
+        )
+    }
+}
+
+/** A one-line nudge to the release page, only shown when a newer build exists. */
+@Composable
+private fun UpdatePill(release: Release) {
+    val context = LocalContext.current
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.14f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.45f)),
+        modifier = Modifier.clickable {
+            runCatching {
+                context.startActivity(
+                    Intent(Intent.ACTION_VIEW, Uri.parse(release.pageUrl))
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            }
+        }
+    ) {
+        Text(
+            text = stringResource(R.string.update_pill, release.version),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.tertiary,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp)
         )
     }
 }

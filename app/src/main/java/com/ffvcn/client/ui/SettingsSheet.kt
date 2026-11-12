@@ -5,12 +5,15 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,11 +23,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -58,6 +67,8 @@ import com.ffvcn.client.vpn.Phase
 import com.ffvcn.client.vpn.Server
 import com.ffvcn.client.vpn.ServerList
 import com.ffvcn.client.vpn.Store
+import com.ffvcn.client.vpn.UpdateState
+import com.ffvcn.client.vpn.Updates
 import com.ffvcn.client.vpn.VpnState
 import com.ffvcn.client.vpn.VpnUi
 import kotlinx.coroutines.Dispatchers
@@ -86,8 +97,10 @@ fun SettingsSheet(
     var exits by remember { mutableStateOf<List<Server>>(emptyList()) }
     val countries = remember(exits) {
         exits.distinctBy { it.country }
-            .map { it.country to CountryNames.display(it.countryName) }
-            .sortedBy { it.second.lowercase() }
+            .map { it.country to CountryNames.display(it.country, it.countryName) }
+            .sortedWith(
+                compareBy({ CountryNames.rank(it.first) }, { it.second.lowercase() })
+            )
     }
 
     LaunchedEffect(Unit) {
@@ -236,21 +249,16 @@ fun SettingsSheet(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    ChoiceRow(
-                        label = stringResource(R.string.server_auto),
-                        selected = country.isBlank()
-                    ) {
-                        country = ""
-                        Store.setCountry(context, "")
-                    }
-                    countries.forEach { (code, name) ->
-                        ChoiceRow(
-                            label = name.ifBlank { code.uppercase() },
-                            selected = country.equals(code, ignoreCase = true)
-                        ) {
-                            country = code
-                            Store.setCountry(context, code)
-                        }
+                    // A dropdown instead of one row per country: the exit list
+                    // can run to dozens of regions, which buried every section
+                    // below it. The choice is stored, so it survives a restart.
+                    RegionPicker(
+                        selected = country,
+                        options = listOf("" to stringResource(R.string.server_auto)) + countries,
+                        modifier = Modifier.padding(top = 6.dp)
+                    ) { picked ->
+                        country = picked
+                        Store.setCountry(context, picked)
                     }
                 }
             }
@@ -503,11 +511,68 @@ fun SettingsSheet(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    UpdateRow()
                 }
             }
         }
     }
 
+}
+
+/**
+ * Version check against the project's GitHub releases. The app only reads the
+ * public release feed; downloads open the release page in a browser, so the
+ * app never installs anything by itself.
+ */
+@Composable
+private fun UpdateRow() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val state by Updates.state.collectAsState()
+    val release by Updates.release.collectAsState()
+
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = when (state) {
+                    UpdateState.Checking -> stringResource(R.string.update_checking)
+                    UpdateState.Latest -> stringResource(R.string.update_latest)
+                    UpdateState.Available ->
+                        stringResource(R.string.update_available, release?.version.orEmpty())
+                    UpdateState.Failed -> stringResource(R.string.update_failed)
+                    UpdateState.Idle -> stringResource(R.string.update_hint)
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = if (state == UpdateState.Available) MaterialTheme.colorScheme.tertiary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f)
+            )
+            TextButton(
+                onClick = { scope.launch { Updates.check() } },
+                enabled = state != UpdateState.Checking
+            ) {
+                Text(stringResource(R.string.check_update))
+            }
+        }
+        if (state == UpdateState.Available && release != null) {
+            Button(
+                onClick = { openPage(context, release?.pageUrl.orEmpty()) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.update_download))
+            }
+        }
+    }
+}
+
+/** Opens a web page outside the app; a device without a browser just no-ops. */
+private fun openPage(context: Context, url: String) {
+    if (url.isBlank()) return
+    runCatching {
+        context.startActivity(
+            Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+    }
 }
 
 /** The log's size, in the units a file size reads in. */
@@ -524,6 +589,73 @@ private fun logSize(lines: List<LogLine>): String {
 private fun copyLog(context: Context) {
     val manager = context.getSystemService(ClipboardManager::class.java) ?: return
     manager.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.log_title), Logs.text()))
+}
+
+/**
+ * The region picker: a full-width field that opens the list in a menu, so
+ * dozens of exits no longer push the rest of the settings off the screen. The
+ * empty code is "automatic", which is what a fresh install starts on; the
+ * choice is stored, so it is still there after a restart.
+ */
+@Composable
+private fun RegionPicker(
+    selected: String,
+    options: List<Pair<String, String>>,
+    modifier: Modifier = Modifier,
+    onSelect: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val accent = MaterialTheme.colorScheme.primary
+    val current = options.firstOrNull { it.first.equals(selected, ignoreCase = true) }?.second
+        ?: selected.ifEmpty { options.first().second }
+
+    Box(modifier = modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = { expanded = true },
+            shape = RoundedCornerShape(14.dp),
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
+                Text(
+                    text = stringResource(R.string.server_pick_label),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = current,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            Icon(
+                imageVector = Icons.Rounded.ArrowDropDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { (code, name) ->
+                val active = code.equals(selected, ignoreCase = true)
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = name,
+                            color = if (active) accent else MaterialTheme.colorScheme.onSurface,
+                            fontWeight = if (active) FontWeight.Medium else FontWeight.Normal
+                        )
+                    },
+                    onClick = {
+                        onSelect(code)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
 }
 
 /** One row of a settings picker; the check marks the active choice. */

@@ -57,6 +57,23 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Firefox proxy tunnel" />
         </service>
+
+        <!-- Quick settings tile. TileService is bound by the system, which is
+             why it is exported; the permission below is what keeps any other
+             app from binding to it. -->
+        <service
+            android:name=".vpn.VpnTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_ffv"
+            android:label="@string/tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="true" />
+        </service>
     </application>
 
 </manifest>

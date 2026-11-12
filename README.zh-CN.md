@@ -1,4 +1,4 @@
-# FirefoxV CN
+# FFVCN
 
 [English](README.md) · **简体中文** · [فارسی](README.fa.md) · [Русский](README.ru.md) · [Español](README.es.md)
 
@@ -49,6 +49,13 @@ Firefox 出口。
   记录只留在内存里，既不展示也不写入磁盘。
 - 英语/波斯语/俄语/西班牙语/**简体中文**界面，应用内可切换语言，图标是一枚砂岩玫瑰
   窗花。
+- 地区改成下拉框：33 个常用地区按拼音排在前面，其余地区接在后面；选择会被记住，
+  首次安装默认「自动（最快）」。
+- 控制中心磁贴（**FFV开关**）：下拉通知栏就能开关连接，磁贴会跟随实时状态；缺账号
+  或没给 VPN 授权时会自动跳回应用让你补上。
+- 通过本分支的 GitHub releases（[zixiwu/ffvcn](https://github.com/zixiwu/ffvcn/releases)）
+  检测更新：每次启动静默查一次，有新版本时首页出现提示条，设置页也有手动检查按钮。
+  下载走浏览器打开发布页，应用本身不会自动安装任何东西。
 
 ## 构建
 
@@ -67,9 +74,9 @@ tag 时构建。push 到 `main` 会刷新 **Latest build** 这个滚动 release�
 
 | 文件 | ABI |
 | --- | --- |
-| `dist/FirefoxVCN-1.1.1-armeabi-v7a.apk` | 32 位 ARM |
-| `dist/FirefoxVCN-1.1.1-arm64-v8a.apk` | 64 位 ARM |
-| `dist/FirefoxVCN-1.1.1-universal.apk` | 两者通吃 |
+| `dist/FirefoxVCN-1.1.2-armeabi-v7a.apk` | 32 位 ARM |
+| `dist/FirefoxVCN-1.1.2-arm64-v8a.apk` | 64 位 ARM |
+| `dist/FirefoxVCN-1.1.2-universal.apk` | 两者通吃 |
 
 发布版用 `signing/firefoxv-cn.keystore` 里那把固定密钥签名（PKCS12，别名
 `firefoxv-cn`，密码 `ffvpncn`），所以本地或 CI 出的新包都能直接覆盖安装**这个应用**

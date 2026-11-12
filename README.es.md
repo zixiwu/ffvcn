@@ -74,9 +74,9 @@ artefacto `FirefoxVCN-apks`. Los binarios nunca viven en el repositorio.
 
 | Archivo | ABI |
 | --- | --- |
-| `dist/FirefoxVCN-1.1.1-armeabi-v7a.apk` | ARM de 32 bits |
-| `dist/FirefoxVCN-1.1.1-arm64-v8a.apk` | ARM de 64 bits |
-| `dist/FirefoxVCN-1.1.1-universal.apk` | ambas |
+| `dist/FirefoxVCN-1.1.2-armeabi-v7a.apk` | ARM de 32 bits |
+| `dist/FirefoxVCN-1.1.2-arm64-v8a.apk` | ARM de 64 bits |
+| `dist/FirefoxVCN-1.1.2-universal.apk` | ambas |
 
 Todas las compilaciones de versión se firman con la clave fija
 `signing/firefoxv-cn.keystore`, así que cada compilación —local o de CI— se instala

@@ -1,4 +1,4 @@
-# FirefoxV CN
+# FFVCN
 
 **English** · [简体中文](README.zh-CN.md) · [فارسی](README.fa.md) · [Русский](README.ru.md) · [Español](README.es.md)
 
@@ -55,8 +55,18 @@ proxy" — proxy mode is a separate option you can pick instead.
 - Live throughput/latency readout and an in-app log card: it shows the log's
   size, copies it to the clipboard, or clears it — the lines stay in memory and
   are never shown or written to disk.
-- English/Persian/Russian/Spanish UI with an in-app language picker, and a
-  sandstone rosette launcher icon.
+- English/Persian/Russian/Spanish/Chinese UI with an in-app language picker, and
+  a sandstone rosette launcher icon.
+- Region picker as a dropdown: 33 curated regions lead the list in pinyin order,
+  the rest follow; the choice is remembered, a fresh install starts on Automatic.
+- Quick settings tile (**FFV开关**): connect or disconnect from the shade, with
+  the tile following the live state and handing back to the app when consent or
+  an account is still missing.
+- Update check against this fork's GitHub releases
+  ([zixiwu/ffvcn](https://github.com/zixiwu/ffvcn/releases)): one silent check
+  per launch, a pill on the home screen when something newer exists, and a manual
+  button in Settings. Downloads open the release page — the app never installs
+  anything by itself.
 
 ## Build
 
@@ -76,9 +86,9 @@ Binaries never live in the repository.
 
 | File | ABI |
 | --- | --- |
-| `dist/FirefoxVCN-1.1.1-armeabi-v7a.apk` | 32-bit ARM |
-| `dist/FirefoxVCN-1.1.1-arm64-v8a.apk` | 64-bit ARM |
-| `dist/FirefoxVCN-1.1.1-universal.apk` | both |
+| `dist/FirefoxVCN-1.1.2-armeabi-v7a.apk` | 32-bit ARM |
+| `dist/FirefoxVCN-1.1.2-arm64-v8a.apk` | 64-bit ARM |
+| `dist/FirefoxVCN-1.1.2-universal.apk` | both |
 
 Release builds are signed with the fixed key in `signing/firefoxv-cn.keystore`
 (PKCS12, alias `firefoxv-cn`, password `ffvpncn`), so every build — local or CI

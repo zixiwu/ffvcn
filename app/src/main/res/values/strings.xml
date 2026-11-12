@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">FirefoxV CN</string>
+    <string name="app_name" translatable="false">FFVCN</string>
     <string name="notification_channel">Tunnel</string>
     <string name="notification_connecting">Building the tunnel…</string>
     <string name="notification_connected">Tunnel is up</string>
@@ -60,6 +60,7 @@
     <string name="server_title">Server</string>
     <string name="server_desc">Choose where the traffic leaves Mozilla\'s network, or let the app use the fastest exit.</string>
     <string name="server_auto">Automatic (fastest)</string>
+    <string name="server_pick_label">Region</string>
 
     <string name="account_title">Firefox Account</string>
     <string name="account_hint">Sign in with your Firefox Account. The engine uses the credentials once to obtain a session; only the token is kept on the device.</string>
@@ -123,6 +124,16 @@
     <string name="about_title">About</string>
     <string name="about_core">Core: ffvpn (Go) · free exits</string>
     <string name="about_version">Version %1$s (%2$d)</string>
+    <string name="check_update">Check</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_latest">This is the newest version.</string>
+    <string name="update_available">Version %1$s is out.</string>
+    <string name="update_failed">Could not reach GitHub. Try again later.</string>
+    <string name="update_download">Open the download page</string>
+    <string name="update_hint">Updates are published on GitHub.</string>
+    <string name="update_pill">New %1$s · get it</string>
+    <string name="tile_label" translatable="false">FFV开关</string>
+    <string name="tile_no_account">Not signed in</string>
     <string name="free_tier">Free tier</string>
     <string name="latency_format">%1$d ms</string>
     <string name="exit_unknown">Auto exit</string>

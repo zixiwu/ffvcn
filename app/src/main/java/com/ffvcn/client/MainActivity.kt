@@ -11,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +28,7 @@ import com.ffvcn.client.vpn.FirefoxVpnService
 import com.ffvcn.client.vpn.Mode
 import com.ffvcn.client.vpn.Phase
 import com.ffvcn.client.vpn.Store
+import com.ffvcn.client.vpn.Updates
 import com.ffvcn.client.vpn.VpnState
 import com.ffvcn.client.vpn.VpnUi
 
@@ -58,6 +60,10 @@ class MainActivity : ComponentActivity() {
                 // does not provide and R8 builds crash on.
                 val ui by VpnState.ui.collectAsState()
                 var settingsOpen by remember { mutableStateOf(false) }
+
+                // One silent check per launch: a newer release only surfaces as
+                // a pill on the home screen, and a failed check stays invisible.
+                LaunchedEffect(Unit) { Updates.auto() }
 
                 Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0A0B10)) {
                     HomeScreen(
