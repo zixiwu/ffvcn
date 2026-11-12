@@ -139,7 +139,10 @@ object Updates {
                 if (version.isEmpty() || version.any { !it.isDigit() && it != '.' }) {
                     return@forEach
                 }
-                if (bestVersion == null || compare(version, bestVersion) > 0) {
+                // Read the captured var once: a smart cast does not survive a
+                // closure, so comparing `bestVersion` directly would not compile.
+                val current = bestVersion
+                if (current == null || compare(version, current) > 0) {
                     bestVersion = version
                     bestTag = tag
                 }
