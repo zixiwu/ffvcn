@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_channel">连接状态</string>
+    <string name="notification_connecting">正在建立隧道…</string>
+    <string name="notification_connected">隧道已就绪</string>
+    <string name="notification_proxy">代理已启动</string>
+    <string name="action_disconnect">断开</string>
+    <string name="action_sign_in">登录</string>
+    <string name="action_sign_out">退出登录</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_continue">继续</string>
+
+    <string name="step_reading_list">正在获取免费节点列表…</string>
+    <string name="step_probing">正在测试 %1$s 个节点…</string>
+    <string name="step_dialing">正在连接 %1$s…</string>
+    <string name="step_opening_tunnel">正在打开隧道…</string>
+    <string name="step_reconnecting">正在重新连接…</string>
+
+    <string name="error_engine_missing">此安装包缺少隧道引擎，无法建立连接。</string>
+    <string name="error_sign_in">请先登录 Firefox 账户。</string>
+    <string name="error_no_exits">当前没有可连接的免费节点。</string>
+    <string name="error_no_traffic">节点接受了连接，但没有数据通过。</string>
+    <string name="error_no_proxy">%1$d 秒内未能启动代理。</string>
+    <string name="error_tunnel_failed">隧道接口启动失败。</string>
+    <string name="error_dropped">隧道已断开，且无法自动重建。</string>
+
+    <string name="status_off">未连接</string>
+    <string name="status_connecting">正在连接</string>
+    <string name="status_on">已连接</string>
+    <string name="status_error">连接失败</string>
+    <string name="status_proxy_on">代理运行中</string>
+
+    <string name="hint_off">点击圆环，让流量经免费的 Firefox 节点转发。</string>
+    <string name="hint_connecting">正在挑选响应最快的节点。</string>
+    <string name="hint_on">流量正从 Mozilla 的代理发出。</string>
+    <string name="hint_proxy_on">本地代理已就绪：127.0.0.1:1080</string>
+    <string name="share_ready">已共享到局域网：%1$s</string>
+    <string name="share_ports">SOCKS %1$s · HTTP %2$s</string>
+    <string name="share_no_network">请先连接 Wi-Fi 或开启热点，才能共享。</string>
+
+    <string name="cd_settings">设置</string>
+    <string name="cd_power">连接或断开</string>
+
+    <string name="settings_title">设置</string>
+    <string name="language_title">语言</string>
+    <string name="language_desc">切换后立即生效；选“跟随系统”则使用手机的语言设置。</string>
+    <string name="language_system">跟随系统</string>
+
+    <string name="mode_title">连接模式</string>
+    <string name="mode_vpn">VPN</string>
+    <string name="mode_vpn_desc">本机所有应用的流量都走隧道。</string>
+    <string name="mode_proxy">代理</string>
+    <string name="mode_proxy_desc">开一个 SOCKS/HTTP 代理，交给需要走代理的应用。</string>
+    <string name="share_title">局域网共享</string>
+    <string name="share_desc">让同一 Wi-Fi 或热点下的其他设备共用这条连接。</string>
+    <string name="proxy_address">代理地址</string>
+    <string name="settings_next_connect">改动会在下次连接时生效。</string>
+
+    <string name="server_title">节点</string>
+    <string name="server_desc">指定流量从 Mozilla 网络的哪个地区出口，也可以交给应用自动挑选最快的节点。</string>
+    <string name="server_auto">自动（最快）</string>
+
+    <string name="account_title">Firefox 账户</string>
+    <string name="account_hint">用 Firefox 账户登录。引擎只在登录时使用一次账号密码换取会话，设备上仅保留会话令牌。</string>
+    <string name="account_none">还没有保存账户。登录或注册一个免费 Firefox 账户，即可获得免费流量。</string>
+    <string name="account_add">添加其他账户</string>
+    <string name="account_active">使用中</string>
+    <string name="account_remove">从本机移除</string>
+    <string name="account_switch_note">所选账户将在下次连接时启用。</string>
+    <string name="sign_in_with_firefox">用 Firefox 账户登录</string>
+    <string name="sign_in_failed">Mozilla 拒绝了此次登录。</string>
+    <string name="sign_in_checking">正在校验会话…</string>
+    <string name="signed_in_as">已登录</string>
+    <string name="quota_label">免费流量</string>
+
+    <string name="sign_in_title">Firefox 登录</string>
+    <string name="sign_in_hint">邮箱和密码由内置引擎直接发给 Mozilla，设备上只保存它返回的会话令牌。</string>
+    <string name="sign_in_email">邮箱</string>
+    <string name="sign_in_password">密码</string>
+    <string name="sign_in_unblock">解锁码</string>
+    <string name="sign_in_unblock_hint">仅当 Mozilla 因拦截登录而给你发来验证码时才需要填写。</string>
+    <string name="sign_in_have_code">我收到了 Mozilla 的验证码</string>
+    <string name="sign_in_action">登录</string>
+    <string name="sign_in_working">正在登录…</string>
+    <string name="sign_in_totp_title">两步验证码</string>
+    <string name="sign_in_captcha_title">图形验证码</string>
+    <string name="sign_in_captcha_hint">请输入图片中的字符，好让 Mozilla 确认你不是机器人。</string>
+    <string name="sign_in_captcha_broken">验证码图片加载不出来。</string>
+    <string name="sign_in_totp_hint">请输入身份验证器应用里的六位数字。</string>
+    <string name="sign_in_confirm">请在邮箱里确认这次登录，然后回到这里等待。</string>
+    <string name="sign_in_missing">请先填写账户邮箱和密码。</string>
+    <string name="sign_in_create_tab">注册账户</string>
+    <string name="sign_in_show_password">显示密码</string>
+    <string name="sign_in_hide_password">隐藏密码</string>
+    <string name="sign_in_err_password">密码与这个账户不符。</string>
+    <string name="sign_in_err_unblock">Mozilla 拦截了这次登录，并已把解锁码发到邮箱，请在下方填写。</string>
+    <string name="sign_in_err_unverified">这个账户还没验证。请打开 Mozilla 的邮件确认邮箱地址，再重新登录。</string>
+    <string name="sign_in_err_unknown">没有使用这个邮箱的 Firefox 账户。</string>
+    <string name="sign_in_err_unconfirmed">Mozilla 还没有确认这次会话。请在邮件里批准登录后重试。</string>
+    <string name="sign_in_err_timeout">登录超时了，请检查网络后重试。</string>
+    <string name="sign_in_err_network">连不上 Mozilla 的服务器。请重试，或者换一个网络。</string>
+    <string name="sign_in_err_browser">没有可以打开这个页面的浏览器。</string>
+    <string name="sign_in_err_blocked">Mozilla 的反机器人校验挡住了这次登录，要求输入引擎无法自动完成的图形验证码。请过几分钟或换个网络再试。</string>
+
+    <string name="create_title">注册 Firefox 账户</string>
+    <string name="create_hint">免费 Firefox 账户每月有 50 GB 流量。Mozilla 官方页面会直接开在应用里：在那里注册（或登录），会话会自动带回来。</string>
+    <string name="create_email_used">打算使用的邮箱</string>
+    <string name="create_open">打开 accounts.firefox.com</string>
+    <string name="create_have_account">我已有账户</string>
+    <string name="web_sign_in_title">Firefox 登录</string>
+    <string name="web_sign_in_hint">这是 Mozilla 官方页面。在这里登录或注册，应用会自动取回会话，且只保留令牌。</string>
+    <string name="web_sign_in_confirming">已取得会话。请完成确认（输入验证码，或点开邮件里的链接），并留在此页面。</string>
+
+    <string name="log_title">运行日志</string>
+    <string name="log_desc">本次运行中应用和引擎做过的事。只存在内存里，不会写入磁盘。</string>
+    <string name="log_size">%1$d 行 · %2$s</string>
+    <string name="log_empty">还没有任何记录。</string>
+    <string name="log_copy">复制</string>
+    <string name="log_copied">日志已复制到剪贴板</string>
+    <string name="log_clear">清空</string>
+
+    <string name="about_title">关于</string>
+    <string name="about_core">内核：ffvpn（Go）· 免费节点</string>
+    <string name="about_version">版本 %1$s（%2$d）</string>
+    <string name="free_tier">免费版</string>
+    <string name="latency_format">%1$d 毫秒</string>
+    <string name="exit_unknown">自动选择</string>
+    <string name="exit_label">节点</string>
+    <string name="latency_label">延迟</string>
+</resources>
