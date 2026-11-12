@@ -60,6 +60,8 @@
     <string name="server_desc">指定流量从 Mozilla 网络的哪个地区出口，也可以交给应用自动挑选最快的节点。</string>
     <string name="server_auto">自动（最快）</string>
     <string name="server_pick_label">地区</string>
+    <string name="server_no_exits">暂无节点</string>
+    <string name="server_live">%1$d 个地区有可用节点，共 %2$d 个</string>
 
     <string name="account_title">Firefox 账户</string>
     <string name="account_hint">用 Firefox 账户登录。引擎只在登录时使用一次账号密码换取会话，设备上仅保留会话令牌。</string>
@@ -127,7 +129,7 @@
     <string name="update_checking">正在检查更新…</string>
     <string name="update_latest">已经是最新版本。</string>
     <string name="update_available">发现新版本 %1$s。</string>
-    <string name="update_failed">连不上 GitHub，请稍后再试。</string>
+    <string name="update_failed">连不上 GitHub（%1$s），请稍后再试。</string>
     <string name="update_download">前往下载页</string>
     <string name="update_hint">更新发布在 GitHub 上。</string>
     <string name="update_pill">新版本 %1$s · 去更新</string>

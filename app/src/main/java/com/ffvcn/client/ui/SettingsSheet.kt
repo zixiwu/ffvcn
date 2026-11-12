@@ -95,12 +95,30 @@ fun SettingsSheet(
     var language by remember { mutableStateOf(AppLocale.current(context)) }
     var country by remember { mutableStateOf(Store.country(context)) }
     var exits by remember { mutableStateOf<List<Server>>(emptyList()) }
-    val countries = remember(exits) {
-        exits.distinctBy { it.country }
-            .map { it.country to CountryNames.display(it.country, it.countryName) }
-            .sortedWith(
-                compareBy({ CountryNames.rank(it.first) }, { it.second.lowercase() })
-            )
+    // The picker lists every curated region, not just the ones with a live
+    // exit. Mozilla's free tier only has a handful open at a time, and a menu
+    // that silently shrinks to six entries looks like a bug to anyone who
+    // expected the full set. Regions without an exit are greyed out but stay
+    // selectable: the engine falls back to the whole list when the chosen
+    // country has nothing left.
+    val regions = remember(exits) {
+        val live = exits
+            .filter { it.country.isNotBlank() }
+            .associate {
+                it.country.trim().uppercase(Locale.US) to
+                    CountryNames.display(it.country, it.countryName)
+            }
+        val curated = CountryNames.presets().map { (code, name) ->
+            Region(code, name, live.containsKey(code))
+        }
+        val extra = live
+            .filterKeys { CountryNames.rank(it) == Int.MAX_VALUE }
+            .map { (code, name) -> Region(code, name, true) }
+            .sortedBy { it.name.lowercase(Locale.getDefault()) }
+        // Live regions first — the curated ones in pinyin order, then any the
+        // preset list does not know — and the dead ones sink to the bottom,
+        // where they stay visible but out of the way.
+        curated.filter { it.live } + extra + curated.filterNot { it.live }
     }
 
     LaunchedEffect(Unit) {
@@ -254,11 +272,26 @@ fun SettingsSheet(
                     // below it. The choice is stored, so it survives a restart.
                     RegionPicker(
                         selected = country,
-                        options = listOf("" to stringResource(R.string.server_auto)) + countries,
+                        autoLabel = stringResource(R.string.server_auto),
+                        regions = regions,
                         modifier = Modifier.padding(top = 6.dp)
                     ) { picked ->
                         country = picked
                         Store.setCountry(context, picked)
+                    }
+                    // Only once the list has actually been read, so a freshly
+                    // opened sheet does not flash "0 exits" while it loads.
+                    if (exits.isNotEmpty()) {
+                        Text(
+                            text = stringResource(
+                                R.string.server_live,
+                                regions.count { it.live },
+                                regions.size
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
                     }
                 }
             }
@@ -530,6 +563,7 @@ private fun UpdateRow() {
     val scope = rememberCoroutineScope()
     val state by Updates.state.collectAsState()
     val release by Updates.release.collectAsState()
+    val error by Updates.error.collectAsState()
 
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -539,7 +573,10 @@ private fun UpdateRow() {
                     UpdateState.Latest -> stringResource(R.string.update_latest)
                     UpdateState.Available ->
                         stringResource(R.string.update_available, release?.version.orEmpty())
-                    UpdateState.Failed -> stringResource(R.string.update_failed)
+                    // The cause goes in parentheses: it is the difference between
+                    // a blocked network and a repo that has nothing published yet.
+                    UpdateState.Failed ->
+                        stringResource(R.string.update_failed, error.orEmpty())
                     UpdateState.Idle -> stringResource(R.string.update_hint)
                 },
                 style = MaterialTheme.typography.bodySmall,
@@ -591,6 +628,9 @@ private fun copyLog(context: Context) {
     manager.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.log_title), Logs.text()))
 }
 
+/** One row of the region menu: a code, its name, and whether an exit is live. */
+private data class Region(val code: String, val name: String, val live: Boolean)
+
 /**
  * The region picker: a full-width field that opens the list in a menu, so
  * dozens of exits no longer push the rest of the settings off the screen. The
@@ -600,14 +640,21 @@ private fun copyLog(context: Context) {
 @Composable
 private fun RegionPicker(
     selected: String,
-    options: List<Pair<String, String>>,
+    autoLabel: String,
+    regions: List<Region>,
     modifier: Modifier = Modifier,
     onSelect: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     val accent = MaterialTheme.colorScheme.primary
-    val current = options.firstOrNull { it.first.equals(selected, ignoreCase = true) }?.second
-        ?: selected.ifEmpty { options.first().second }
+    val noExits = stringResource(R.string.server_no_exits)
+    val chosen = regions.firstOrNull { it.code.equals(selected, ignoreCase = true) }
+    val current = when {
+        selected.isBlank() -> autoLabel
+        chosen != null && chosen.live -> chosen.name
+        chosen != null -> chosen.name + " · " + noExits
+        else -> selected.uppercase(Locale.US)
+    }
 
     Box(modifier = modifier.fillMaxWidth()) {
         OutlinedButton(
@@ -638,18 +685,53 @@ private fun RegionPicker(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            options.forEach { (code, name) ->
-                val active = code.equals(selected, ignoreCase = true)
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = autoLabel,
+                        color = if (selected.isBlank()) accent
+                        else MaterialTheme.colorScheme.onSurface,
+                        fontWeight = if (selected.isBlank()) FontWeight.Medium
+                        else FontWeight.Normal
+                    )
+                },
+                onClick = {
+                    onSelect("")
+                    expanded = false
+                }
+            )
+            regions.forEach { region ->
+                val active = region.code.equals(selected, ignoreCase = true)
                 DropdownMenuItem(
                     text = {
-                        Text(
-                            text = name,
-                            color = if (active) accent else MaterialTheme.colorScheme.onSurface,
-                            fontWeight = if (active) FontWeight.Medium else FontWeight.Normal
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = region.name,
+                                color = when {
+                                    active -> accent
+                                    !region.live -> MaterialTheme.colorScheme.onSurfaceVariant
+                                        .copy(alpha = 0.55f)
+                                    else -> MaterialTheme.colorScheme.onSurface
+                                },
+                                fontWeight = if (active) FontWeight.Medium else FontWeight.Normal,
+                                maxLines = 1,
+                                modifier = Modifier.weight(1f)
+                            )
+                            // A greyed entry is still tappable: the engine falls
+                            // back to the full list, so the choice does no harm,
+                            // it just cannot be honoured right now.
+                            if (!region.live) {
+                                Text(
+                                    text = noExits,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        .copy(alpha = 0.55f)
+                                )
+                            }
+                        }
                     },
                     onClick = {
-                        onSelect(code)
+                        onSelect(region.code)
                         expanded = false
                     }
                 )

@@ -49,8 +49,8 @@ Firefox 出口。
   记录只留在内存里，既不展示也不写入磁盘。
 - 英语/波斯语/俄语/西班牙语/**简体中文**界面，应用内可切换语言，图标是一枚砂岩玫瑰
   窗花。
-- 地区改成下拉框：33 个常用地区按拼音排在前面，其余地区接在后面；选择会被记住，
-  首次安装默认「自动（最快）」。
+- 地区改成下拉框：33 个常用地区全量列出，**当前有可用出口的置顶**（按拼音序），
+  没有的沉到底部并标「暂无节点」；选择会被记住，首次安装默认「自动（最快）」。
 - 控制中心磁贴（**FFV开关**）：下拉通知栏就能开关连接，磁贴会跟随实时状态；缺账号
   或没给 VPN 授权时会自动跳回应用让你补上。
 - 通过本分支的 GitHub releases（[zixiwu/ffvcn](https://github.com/zixiwu/ffvcn/releases)）
@@ -68,9 +68,10 @@ Android SDK，以及用来编译引擎的 Go。
 
 它会执行 `assembleRelease`，并把拆分出来的 APK 复制到 `dist/`。同一套构建也能在
 GitHub 上跑：`.github/workflows/build-apks.yml` 会在每次 push、pull request 和打
-tag 时构建。push 到 `main` 会刷新 **Latest build** 这个滚动 release，打 tag 则生成
-一个带版本号的正式 release，所以 Releases 里的 APK 永远不会比 `main` 旧；每次运行
-还会把 APK 作为 `FirefoxVCN-apks` 产物挂到这次 run 上。二进制文件不进仓库。
+tag 时构建。除 PR 外的每次构建都会发一个带版本号的正式 release，标签是
+`v<versionName>`；标签已存在时会强制移到本次提交，所以 Releases 里的源码永远和
+APK 一致，重复发同一版本则是覆盖 APK。每次运行还会把 APK 作为 `FirefoxVCN-apks`
+产物挂到这次 run 上。二进制文件不进仓库。
 
 | 文件 | ABI |
 | --- | --- |

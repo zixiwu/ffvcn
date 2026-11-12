@@ -7,57 +7,72 @@ import java.util.Locale
  * picker shows them in.
  *
  * The exit list comes from Mozilla's own API and carries the country name in
- * English ("Germany") next to a two-letter code. The names below are the ones
- * people actually look for, so they lead the picker in pinyin order; anything
- * the API returns beyond that list is still selectable and simply follows
- * alphabetically, so a newly opened exit never becomes unreachable.
+ * English ("Germany") next to a two-letter code. The curated list below is what
+ * the picker leads with, in pinyin order; anything the API returns beyond it is
+ * appended after. Codes, not names, are the key: "Czechia" and "Czech Republic"
+ * are the same exit, and a spelling change on Mozilla's side would otherwise
+ * silently drop a region.
  */
 object CountryNames {
+
+    /** A curated region: stable code, Chinese name, English name. */
+    private data class Preset(val code: String, val zh: String, val en: String)
+
     /**
-     * The regions worth putting at the top, in the order the picker shows
-     * them: code to Chinese name. Codes, not names, so a spelling change on
-     * Mozilla's side cannot silently drop an entry.
+     * The regions the picker always lists, in the order it shows them. Kept
+     * even when the free tier has no exit there at the moment — the picker
+     * greys those out rather than hiding them, so "德国" never just disappears
+     * and leave the user wondering what happened to half the list.
      */
-    private val preferred: List<Pair<String, String>> = listOf(
-        "AR" to "阿根廷",
-        "IE" to "爱尔兰",
-        "AT" to "奥地利",
-        "AU" to "澳大利亚",
-        "BR" to "巴西",
-        "BG" to "保加利亚",
-        "BE" to "比利时",
-        "DK" to "丹麦",
-        "DE" to "德国",
-        "FR" to "法国",
-        "PH" to "菲律宾",
-        "FI" to "芬兰",
-        "CO" to "哥伦比亚",
-        "KR" to "韩国",
-        "NL" to "荷兰",
-        "CA" to "加拿大",
-        "GH" to "加纳",
-        "MY" to "马来西亚",
-        "US" to "美国",
-        "PE" to "秘鲁",
-        "MX" to "墨西哥",
-        "ZA" to "南非",
-        "NO" to "挪威",
-        "PT" to "葡萄牙",
-        "JP" to "日本",
-        "SE" to "瑞典",
-        "TH" to "泰国",
-        "ES" to "西班牙",
-        "SG" to "新加坡",
-        "NZ" to "新西兰",
-        "IT" to "意大利",
-        "GB" to "英国",
-        "CL" to "智利"
+    private val preferred: List<Preset> = listOf(
+        Preset("AR", "阿根廷", "Argentina"),
+        Preset("IE", "爱尔兰", "Ireland"),
+        Preset("AT", "奥地利", "Austria"),
+        Preset("AU", "澳大利亚", "Australia"),
+        Preset("BR", "巴西", "Brazil"),
+        Preset("BG", "保加利亚", "Bulgaria"),
+        Preset("BE", "比利时", "Belgium"),
+        Preset("DK", "丹麦", "Denmark"),
+        Preset("DE", "德国", "Germany"),
+        Preset("FR", "法国", "France"),
+        Preset("PH", "菲律宾", "Philippines"),
+        Preset("FI", "芬兰", "Finland"),
+        Preset("CO", "哥伦比亚", "Colombia"),
+        Preset("KR", "韩国", "South Korea"),
+        Preset("NL", "荷兰", "Netherlands"),
+        Preset("CA", "加拿大", "Canada"),
+        Preset("GH", "加纳", "Ghana"),
+        Preset("MY", "马来西亚", "Malaysia"),
+        Preset("US", "美国", "United States"),
+        Preset("PE", "秘鲁", "Peru"),
+        Preset("MX", "墨西哥", "Mexico"),
+        Preset("ZA", "南非", "South Africa"),
+        Preset("NO", "挪威", "Norway"),
+        Preset("PT", "葡萄牙", "Portugal"),
+        Preset("JP", "日本", "Japan"),
+        Preset("SE", "瑞典", "Sweden"),
+        Preset("TH", "泰国", "Thailand"),
+        Preset("ES", "西班牙", "Spain"),
+        Preset("SG", "新加坡", "Singapore"),
+        Preset("NZ", "新西兰", "New Zealand"),
+        Preset("IT", "意大利", "Italy"),
+        Preset("GB", "英国", "United Kingdom"),
+        Preset("CL", "智利", "Chile")
     )
 
-    private val zhByCode: Map<String, String> = preferred.toMap()
+    private val zhByCode: Map<String, String> = preferred.associate { it.code to it.zh }
 
     private val orderByCode: Map<String, Int> =
-        preferred.withIndex().associate { (index, entry) -> entry.first to index }
+        preferred.withIndex().associate { (index, preset) -> preset.code to index }
+
+    /**
+     * The curated regions in picker order, named for the current UI language.
+     * The picker marks the ones without a live exit; it never drops them.
+     */
+    fun presets(): List<Pair<String, String>> {
+        val zh = Locale.getDefault().language == "zh"
+        return preferred.map { it.code to if (zh) it.zh else it.en }
+    }
 
     /** Fallback for exits whose code is not in [preferred]. */
     private val zhByName: Map<String, String> = mapOf(

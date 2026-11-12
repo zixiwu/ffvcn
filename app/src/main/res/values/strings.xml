@@ -61,6 +61,8 @@
     <string name="server_desc">Choose where the traffic leaves Mozilla\'s network, or let the app use the fastest exit.</string>
     <string name="server_auto">Automatic (fastest)</string>
     <string name="server_pick_label">Region</string>
+    <string name="server_no_exits">No exits</string>
+    <string name="server_live">%1$d of %2$d regions have a live exit</string>
 
     <string name="account_title">Firefox Account</string>
     <string name="account_hint">Sign in with your Firefox Account. The engine uses the credentials once to obtain a session; only the token is kept on the device.</string>
@@ -128,7 +130,7 @@
     <string name="update_checking">Checking for updates…</string>
     <string name="update_latest">This is the newest version.</string>
     <string name="update_available">Version %1$s is out.</string>
-    <string name="update_failed">Could not reach GitHub. Try again later.</string>
+    <string name="update_failed">Could not reach GitHub (%1$s). Try again later.</string>
     <string name="update_download">Open the download page</string>
     <string name="update_hint">Updates are published on GitHub.</string>
     <string name="update_pill">New %1$s · get it</string>

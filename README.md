@@ -57,8 +57,9 @@ proxy" — proxy mode is a separate option you can pick instead.
   are never shown or written to disk.
 - English/Persian/Russian/Spanish/Chinese UI with an in-app language picker, and
   a sandstone rosette launcher icon.
-- Region picker as a dropdown: 33 curated regions lead the list in pinyin order,
-  the rest follow; the choice is remembered, a fresh install starts on Automatic.
+- Region picker as a dropdown: all 33 curated regions are always listed, the ones
+  with a live exit on top in pinyin order and the rest sunk to the bottom as
+  "No exits"; the choice is remembered, a fresh install starts on Automatic.
 - Quick settings tile (**FFV开关**): connect or disconnect from the shade, with
   the tile following the live state and handing back to the app when consent or
   an account is still missing.
@@ -79,10 +80,11 @@ NDK 26.3.11579264, Go for the engine.
 
 This runs `assembleRelease` and copies the splits into `dist/`. The same build
 runs on GitHub: `.github/workflows/build-apks.yml` builds every push, pull
-request and tag. Pushes to `main` refresh the **Latest build** release and tags
-create a numbered one, so the APKs in Releases are never older than `main`, and
-every run also attaches them to the run as the `FirefoxVCN-apks` artifact.
-Binaries never live in the repository.
+request and tag. Every non-PR build publishes a numbered release tagged
+`v<versionName>`, which is moved to the commit just built if it already exists,
+so Releases never point at older code and re-running a version replaces its
+APKs. Each run also attaches them as the `FirefoxVCN-apks` artifact. Binaries
+never live in the repository.
 
 | File | ABI |
 | --- | --- |
