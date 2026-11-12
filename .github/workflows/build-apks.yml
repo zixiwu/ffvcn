@@ -1,0 +1,99 @@
+name: Build APKs
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apks:
+    name: Release APKs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install Android platform and build-tools
+        run: |
+          # The runner image already ships the SDK, so only the platform and
+          # build-tools this project compiles against are added. sdkmanager is
+          # located by glob because its cmdline-tools directory is versioned.
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDKM="$(ls "$SDK"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | tail -1)"
+          if [ -z "$SDKM" ]; then
+            echo "::warning::no sdkmanager on the image, using the SDK as-is"
+            exit 0
+          fi
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" --install "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', '**/*.gradle.kts') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Build release APKs
+        run: |
+          chmod +x gradlew tools/build-apks.sh
+          GRADLE=./gradlew ./tools/build-apks.sh
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: FirefoxVCN-apks
+          path: dist/*.apk
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.apk
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+      # A branch only ever gets this rolling release, so the APKs under Releases
+      # follow main instead of waiting for the next version tag. Version tags
+      # above stay the permanent, numbered snapshots.
+      - name: Refresh the Latest build release
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest build
+          prerelease: true
+          overwrite_files: true
+          fail_on_unmatched_files: true
+          body: |
+            Built from `${{ github.sha }}` on `${{ github.ref_name }}`.
+            These APKs are newer than the newest version tag; numbered
+            releases are the version tags.
+          files: dist/*.apk
+
+      # overwrite_files only replaces assets with the same name, so an older
+      # version's APKs would linger next to the new ones. Drop whatever is not
+      # part of this build.
+      - name: Drop stale APKs from the Latest build release
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view latest --json assets --jq '.assets[].name' 2>/dev/null |
+          while read -r name; do
+            [ -n "$name" ] || continue
+            [ -f "dist/$name" ] || gh release delete-asset latest "$name" --yes
+          done
